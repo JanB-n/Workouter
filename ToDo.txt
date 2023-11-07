@@ -1,6 +1,0 @@
-1. Dodawanie ćwiczeń
-2. Dodawanie treningów
-3. Zapisywanie postępów w ćwiczeniach
-
-
-Cwiczenia, które dodał user i ćwiczenia dodane odgórnie, których nie ma w danym treningu

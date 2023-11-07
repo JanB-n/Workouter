@@ -109,6 +109,7 @@ class Database():
                 '''
                 MATCH (user:User {username: $username})-[:ADDED_TRAINING]->(t:Training)
                 RETURN ID(t), t.trainingname
+                ORDER BY t.trainingname
                 ''', {'username': username}
             )
             return list(result)
@@ -125,6 +126,7 @@ class Database():
                 '''
                 MATCH (user:User {username: $username})-[:FOLLOWS]->(t:Training)
                 RETURN ID(t), t.trainingname
+                ORDER BY t.trainingname
                 ''', {'username': username}
             )
             return list(result)
@@ -145,6 +147,7 @@ class Database():
                 WITH excluded, t, collect(t) as trainings
                 WHERE NONE (t in trainings where t in excluded)
                 RETURN ID(t), t.trainingname
+                ORDER BY t.trainingname
                 ''', {'username': username}
             )
             return list(result)
@@ -180,6 +183,7 @@ class Database():
                 '''
                 MATCH (user:User {username: $username})-[:ADDED_EXERCISE]->(e:Exercise)
                 RETURN ID(e), e.exercisename
+                ORDER BY e.exercisename
                 ''', {'username': username}
             )
             return list(result)
@@ -193,6 +197,7 @@ class Database():
                MATCH (e:Exercise) 
                WHERE NOT ()-[:ADDED_EXERCISE]->(e) 
                RETURN ID(e), e.exercisename
+               ORDER BY e.exercisename
                 '''
             )
             return list(result)
@@ -208,6 +213,7 @@ class Database():
                MATCH (n:Training)-[:INCLUDES]->(e:Exercise) 
                WHERE ID(n) = $training_id
                RETURN ID(e), e.exercisename
+               ORDER BY e.exercisename
                 ''', {'training_id': training_id}
             )
             return list(result)
@@ -227,6 +233,7 @@ class Database():
                 WITH excluded,e, u, collect(e) as exercises
                 WHERE NONE (e in exercises where e in excluded)
                 RETURN ID(e), e.exercisename
+                ORDER BY e.exercisename
                 UNION
                 MATCH (t:Training)-[:INCLUDES]->(excluded:Exercise)
                 WHERE ID(t) = $training_id
@@ -235,6 +242,7 @@ class Database():
                 WITH excluded, e, collect(e) as exercises
                 WHERE NONE (e in exercises where e in excluded)
                 RETURN ID(e), e.exercisename
+                ORDER BY e.exercisename
                 ''', {'username': username, 'training_id': training_id}
             )
             return list(result)
