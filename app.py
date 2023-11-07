@@ -244,3 +244,7 @@ def checkowner():
     except:
         return Response(status=400)
     
+
+@app.route("/exercise/<int:id>", methods=["GET"])
+def exercise_get(id):
+    return render_template('exercise', exercise_id = id)
