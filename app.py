@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, get_jw
 from flask_cors import CORS
 from database import Database
 from datetime import timedelta
+import os
 
 import json
 
@@ -15,9 +16,9 @@ CORS(app)
 
 
 def connect():
-    neo4j_uri = 'neo4j+ssc://6b38eb4f.databases.neo4j.io:7687'
+    neo4j_uri = os.environ['neo4j_uri']
     neo4j_user = 'neo4j'
-    neo4j_password = 'nZxbso28ztGPFeq2_kfTUZ26LvrvZLhky-3ePAZFISY'
+    neo4j_password = os.environ['neo4j_password']
     database = 'neo4j'
     return Database(neo4j_uri, neo4j_user, neo4j_password, database)
 
