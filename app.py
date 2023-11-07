@@ -11,12 +11,11 @@ app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
 jwt = JWTManager(app)
 #CORS(app)
-#CORS(app)
+CORS(app)
 
 
 def connect():
     neo4j_uri = 'neo4j+ssc://6b38eb4f.databases.neo4j.io:7687'
-    #neo4j_uri = 'neo4j+s://neo4j:7687'
     neo4j_user = 'neo4j'
     neo4j_password = 'nZxbso28ztGPFeq2_kfTUZ26LvrvZLhky-3ePAZFISY'
     database = 'neo4j'
@@ -244,3 +243,4 @@ def checkowner():
             return Response(status=status, response=json.dumps({'IsOwner': False}), mimetype='application/json')
     except:
         return Response(status=400)
+    
