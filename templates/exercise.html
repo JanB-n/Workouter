@@ -47,9 +47,28 @@
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
             }).then(response => {
                 response.json().then(data => {
+                    data.sort(function(a,b){
+                    return new Date(b.date) - new Date(a.date);
+                    });
+                    console.log(data);
                     var temp = "";
                     for(var row of data){
-                        console.log(row)
+                        temp += "<h5>"+ row['date'] +"</h5>"
+                        temp += `<table style="margin-top: 10px;" class="table">
+                                    <thead>
+                                    <tr>
+                                        <th>Reps</th>
+                                        <th>Weight (kg)</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>`
+                        for(var i = 0; i < row['reps'].length; ++i)
+                        {
+                            temp += "<tr>";
+                            temp += "<td>"+ row['reps'][i] +"</td>";
+                            temp += "<td>"+ row['weight'][i] +"</td>";
+                        }
+                        temp += "</tbody></table>"
                     }
                     document.getElementById('history').innerHTML = temp;
                 })
@@ -93,9 +112,9 @@
         </tbody>
       </table>
 
-    <button type="button" class="btn btn-primary" onclick="javascript:completeExercise()">Save sets</button>
-
-    <div id="history">
+    <button type="button" class="btn btn-primary" onclick="javascript:completeExercise()">Save sets</button>  
+    <h3>History</h3>
+    <div style="margin-top: 10px;" id="history">
 
     </div>
     <!-- <table style="margin-top: 10px;" class="table">
