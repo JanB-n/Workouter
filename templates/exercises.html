@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.onload = getExercises();
+    function getExercises(){
+        fetch("{{ url_for('exercises_get_protected') }}", {
+                method: 'get',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
+            }).then(response => {
+                response.json().then(
+                    data => {
+                        var temp = "";
+                        for(var row of data?.user_exercises)
+                        {
+                            temp += "<tr>";
+                            temp += "<td><a>" + row['e.exercisename'] + "<a></td>";
+                            temp += "<td>" + '<button onclick="removeExercise('+ row['ID(e)'] +')">Remove</button>' + "</td></tr>";
+                        }
+                        
+                        for(var row of data?.base_exercises)
+                        {
+                            temp += "<tr>";
+                            temp += "<td><a>" + row['e.exercisename'] + "<a></td>";
+                            temp += "<td>" + "</td></tr>";
+                        }
+                        document.getElementById('data').innerHTML = temp;
+                    }
+                )
+            })
+    }
+    function addExercise(){
+        const exercise_name = document.getElementById("exercisename").value;
+        if(exercise_name.length > 0){
+            fetch("{{ url_for('exercises_post') }}", {
+                method: 'post',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                body: JSON.stringify({ 'exercise_name' :  exercise_name})
+            }).then(response => {
+                getExercises();
+            });
+        }
+    }
+
+    function removeExercise(id){
+      fetch("/exercises/delete/" + id, {
+                method: 'delete',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
+            }).then(response => {
+                getExercises();
+            });
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+    Add Exercise
+  </button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Exercise name</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <input type="text" id="exercisename" required>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:addExercise()">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <table style="margin-top: 10px;" class="table">
+    <thead>
+      <tr>
+        <th>Exercise Name</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="data">
+
+    </tbody>
+  </table>
+{% endblock %}

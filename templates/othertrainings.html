@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.onload = getOtherTrainings();
+    function getOtherTrainings(){
+        fetch("{{ url_for('othertrainings_get_protected') }}", {
+                method: 'get',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
+            }).then(response => {
+                response.json().then(
+                    data => {
+                        var temp = "";
+                        for(var row of data?.otherTrainings)
+                        {
+                            const row_id = row['ID(t)'];
+                            temp += "<tr>";
+                            temp += "<td><a href='/training/" + row_id + "'' >"  + row['t.trainingname'] + "</a></td>";
+                            temp += "<td>" + '<button onclick="followTraining('+ row['ID(t)'] +')">Follow</button>' + "</td></tr>";
+                        }
+                        document.getElementById('data').innerHTML = temp;
+                    }
+                )
+            })
+    }
+
+    function followTraining(id){
+      fetch("{{ url_for('follow_post') }}", {
+                method: 'post',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                body: JSON.stringify({ 'training_id' :  id })
+            }).then(response => {
+                getOtherTrainings();
+            });
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+
+  <table style="margin-top: 10px;" class="table">
+    <thead>
+      <tr>
+        <th>Training Name</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="data">
+
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,0 +1,5 @@
+Flask
+neo4j
+flask-login
+flask-cors
+flask-jwt-extended

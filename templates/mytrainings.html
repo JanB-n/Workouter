@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.onload = getMyTrainings();
+    function getMyTrainings(){
+        fetch("{{ url_for('mytrainings_get_protected') }}", {
+                method: 'get',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
+            }).then(response => {
+                response.json().then(
+                    data => {
+                        var temp = "";
+                        for(var row of data?.myTrainings)
+                        {
+                            const row_id = row['ID(t)'];
+                            temp += "<tr>";
+                            temp += "<td><a href='/training/" + row_id + "'' >"  + row['t.trainingname'] + "</a></td>";
+                        
+                            temp += "<td>" + '<button onclick="removeMyTraining('+ row_id +')">Remove</button>' + "</td></tr>";
+                        }
+                        //document.getElementById('data').innerHTML = temp;
+                        for(var row of data?.followed)
+                        {
+                            const row_id = row['ID(t)'];
+                            temp += "<tr>";
+                            temp += "<td><a href='/training/" + row_id + "'' >"  + row['t.trainingname'] + "</a></td>";
+                            temp += "<td>" + '<button onclick="unfollow('+ row_id +')">Unfollow</button>' + "</td></tr>";
+                        }
+                        document.getElementById('data').innerHTML = temp;
+                    }
+                )
+            })
+    }
+    function addTraining(){
+        const training_name = document.getElementById("trainingname").value;
+        if(training_name.length > 0){
+            fetch("{{ url_for('mytrainings_post') }}", {
+                method: 'post',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                body: JSON.stringify({ 'training_name' :  training_name})
+            }).then(response => {
+                getMyTrainings();
+            });
+        }
+    }
+
+    function removeMyTraining(id){
+      fetch("/mytrainings/delete/" + id, {
+                  method: 'delete',
+                  headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
+              }).then(response => {
+                  getMyTrainings();
+              });
+    }
+
+    function unfollow(id){
+      fetch("{{ url_for('unfollow') }}", {
+                method: 'put',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                body: JSON.stringify({ 'training_id' :  id})
+            }).then(response => {
+                getMyTrainings();
+            });
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+    Add training
+  </button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Training name</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <input type="text" id="trainingname" required>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:addTraining()">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table style="margin-top: 10px;" class="table">
+    <thead>
+      <tr>
+        <th>Training Name</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="data">
+
+    </tbody>
+  </table>
+{% endblock %}
