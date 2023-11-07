@@ -4,6 +4,8 @@ import os
 import sys
 import hashlib
 from neo4j import GraphDatabase
+from datetime import datetime
+
 
 class Database():
     def __init__(self, uri, user, password, database):
@@ -402,6 +404,78 @@ class Database():
             return '', 400
         
         return user['username'], 200
+    
+    def getExerciseName(self, exercise_id):
+
+        def get_exercise_name(tx, exercise_id):
+            return tx.run(
+                '''
+                MATCH (e:Exercise)
+                WHERE ID(e) = $exercise_id
+                RETURN e
+                ''', {'exercise_id': exercise_id}
+            ).single()
+        with self.driver.session(database="neo4j") as session:
+            result = session.read_transaction(get_exercise_name, exercise_id)
+        try:
+            exercise = result['e']
+        except KeyError:
+            return '', 400
+        
+        return exercise['exercisename'], 200
+    
+    def addCompletedExercise(self, request, username):
+        data = request.get_json()
+        all_sets = data.get('all_sets')
+        exercise_id = int(data.get('exercise_id'))
+        now = datetime.now()
+        date_time = now.strftime("%m/%d/%Y")
+        reps = []
+        weight = []
+        for row in all_sets:
+            reps.append(row['reps'])
+            weight.append(row['weight'])
+        def add_completed_exercise(tx, username, reps, weight, date_time, exercise_id):
+            return tx.run(
+                '''
+                MATCH (e:Exercise)
+                WHERE ID(e) = $exercise_id
+                CREATE (c:Completed {username: $username, reps: $reps, weight: $weight, date: $date})
+                CREATE (e)-[:INCLUDES_SETS]->(c)
+                ''', {'username': username, 'reps': reps, 'weight': weight, 'date': date_time, 'exercise_id': exercise_id}
+            ).single()
+        with self.driver.session(database="neo4j") as session:
+            result = session.write_transaction(add_completed_exercise, username, reps, weight, date_time, exercise_id)
+
+        return {'add_completed_exercise': 'operation was a success!'}, 201
+    
+    def getExerciseHistory(self, exercise_id, username):
+        exercise_id = int(exercise_id)
+        def get_exercise_history(tx, exercise_id, username):
+            return tx.run(
+                '''
+                MATCH (e:Exercise)-[:INCLUDES_SETS]->(c:Completed {username: $username})
+                WHERE ID(e) = $exercise_id
+                RETURN c
+                ''', {'username': username, 'exercise_id': exercise_id}
+            ).fetch(100)
+        with self.driver.session(database="neo4j") as session:
+            result = session.read_transaction(get_exercise_history, exercise_id, username)
+        print(result)
+        history = []
+        for row in result:
+            try:
+                training = {}
+                completed = row['c']
+                training['reps'] = completed['reps']
+                training['weight'] = completed['weight']
+                training['date'] = completed['date']
+                history.append(training)
+            except KeyError:
+                return {'error': 'results were unexpected'}, 400
+
+        return history, 200
+
 
 def hash_password(username, password):
     if sys.version[0] == 2:

@@ -41,7 +41,7 @@
                         {
                             const row_id = row['ID(e)'];
                             temp += "<tr>";
-                            temp += "<td><a>"  + row['e.exercisename'] + "</a></td>";
+                            temp += "<td><a href='/exercise/" + row_id + "'>"  + row['e.exercisename'] + "</a></td>";
                         
                             temp += "<td>" +  '<button onclick="javascript:removeFromTraining(' + row_id + ')">Remove</button>' + "</td></tr>";
                         }
@@ -142,7 +142,7 @@
     </div>
   </div>
 
-  <table class="table">
+  <table style="margin-top: 10px;" class="table">
     <thead>
       <tr>
         <th>Exercise Name</th>

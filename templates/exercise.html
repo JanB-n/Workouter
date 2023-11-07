@@ -1,9 +1,114 @@
 {% extends 'base.html' %}
 
 {% block navbar %}
-
 {% endblock %}
 
+
+{% block script %}
+<script>
+    var reps_and_weight = []
+    document.onload = getPreviousSessions();
+    function addSet(){
+        const reps = document.getElementById('reps').value;
+        const weight = document.getElementById('weight').value;
+
+        reps_and_weight.push({'reps': reps, 'weight': weight});
+        showRepsInTable();
+    }
+
+    function showRepsInTable(){
+        var temp = "";
+        for(var row of reps_and_weight)
+        {
+            temp += "<tr>";
+            temp += "<td>"+ row['reps'] +"</td>";
+            temp += "<td>"+ row['weight'] +"</td>";
+        }
+        document.getElementById('current').innerHTML = temp;
+    }
+
+    function completeExercise(){
+        if(reps_and_weight.length > 0)
+        {
+            fetch("{{ url_for('exercise_post') }}", {
+                method: 'post',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                body: JSON.stringify({ 'all_sets' : reps_and_weight, 'exercise_id': '{{exercise_id}}' })
+            }).then(r => {
+                getPreviousSessions();
+            })
+        }
+    }
+
+    function getPreviousSessions(){
+        
+            fetch("{{ url_for('exercise_history_get', id=exercise_id) }}", {
+                method: 'get',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+            }).then(response => {
+                response.json().then(data => {
+                    var temp = "";
+                    for(var row of data){
+                        console.log(row)
+                    }
+                    document.getElementById('history').innerHTML = temp;
+                })
+            })
+     
+    }
+</script>
+{% endblock %}
+
+
+
 {% block content %}
-  <h1>Save your trainings with Workouter!</h1>
+<div>
+    <h2>{{exercise_name}} </h2>
+    <form method="post" action="javascript:addSet()">
+        <div class="container">
+            <label for="reps"><b>Reps</b></label>
+            <br/>
+            <input type="number" name="reps" id="reps" required>
+            <br/>
+            <br/>
+            <label for="weight"><b>Weight (kg)</b></label>
+            <br/>
+            <input type="number" name="weight" id="weight" required>
+            <br/>
+            <br/>
+            <button type="submit">Add set</button>
+        </div>
+    </form>
+    <br>
+    
+    <table style="margin-top: 10px;" class="table">
+        <thead>
+          <tr>
+            <th>Reps</th>
+            <th>Weight (kg)</th>
+          </tr>
+        </thead>
+        <tbody id="current">
+    
+        </tbody>
+      </table>
+
+    <button type="button" class="btn btn-primary" onclick="javascript:completeExercise()">Save sets</button>
+
+    <div id="history">
+
+    </div>
+    <!-- <table style="margin-top: 10px;" class="table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Reps</th>
+            <th>Weight (kg)</th>
+          </tr>
+        </thead>
+        <tbody id="history">
+    
+        </tbody>
+      </table> -->
+</div>
 {% endblock %}

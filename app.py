@@ -247,4 +247,32 @@ def checkowner():
 
 @app.route("/exercise/<int:id>", methods=["GET"])
 def exercise_get(id):
-    return render_template('exercise', exercise_id = id)
+    try:
+        db = connect()
+        exercise_name, status = db.getExerciseName(id)
+        return render_template('exercise.html', exercise_id = id, exercise_name=exercise_name)
+    except:
+        return render_template('exercise.html', exercise_id = id, exercise_name='')
+
+@app.route("/exercise", methods=["POST"])
+@jwt_required()
+def exercise_post():
+    try:
+        db = connect()
+        username = get_jwt_identity()
+        message, status = db.addCompletedExercise(request, username)
+        return Response(status=status)
+    except:
+        return Response(status=400)
+    
+@app.route("/exercise/<int:id>/history", methods=["GET"])
+@jwt_required()
+def exercise_history_get(id):
+    #try:
+        db = connect()
+        username = get_jwt_identity()
+        history, status = db.getExerciseHistory(id, username)
+        print(history)
+        return Response(status=status, mimetype='application/json', response=json.dumps(history))
+    #except:
+        return Response(status=400)

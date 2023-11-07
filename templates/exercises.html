@@ -17,15 +17,17 @@
                         var temp = "";
                         for(var row of data?.user_exercises)
                         {
+                            const row_id = row['ID(e)']
                             temp += "<tr>";
-                            temp += "<td><a>" + row['e.exercisename'] + "<a></td>";
+                            temp += "<td><a href='/exercise/" + row_id + "'>" + row['e.exercisename'] + "<a></td>";
                             temp += "<td>" + '<button onclick="removeExercise('+ row['ID(e)'] +')">Remove</button>' + "</td></tr>";
                         }
                         
                         for(var row of data?.base_exercises)
                         {
+                            const row_id = row['ID(e)']
                             temp += "<tr>";
-                            temp += "<td><a>" + row['e.exercisename'] + "<a></td>";
+                            temp += "<td><a href='/exercise/" + row_id + "'>" + row['e.exercisename'] + "<a></td>";
                             temp += "<td>" + "</td></tr>";
                         }
                         document.getElementById('data').innerHTML = temp;
