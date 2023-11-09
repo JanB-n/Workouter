@@ -7,13 +7,13 @@
 {% block script %}
 <script>
     document.onload = getExercisesInTraining();
-
+    var isowner = false
     document.addEventListener("DOMContentLoaded", function() {
       isOwner();
     });
 
     function isOwner(){
-      var isowner = false
+      
       fetch("{{ url_for('checkowner') }}", {
                 method: 'post',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
@@ -29,6 +29,18 @@
     }
 
     function getExercisesInTraining(){
+      fetch("{{ url_for('checkowner') }}", {
+                method: 'post',
+                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                body: JSON.stringify({ 'training_id' :  "{{training_id}}"})
+            }).then(response => {
+              response.json().then(data => {
+                isowner = data['IsOwner'];
+                if(isowner){
+                  document.getElementById("modalbutton").style.display = "inline-block";
+                }
+              })
+            }).then(r => {
         fetch("{{ url_for('training_get_protected', id=training_id) }}", {
                 method: 'get',
                 headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
@@ -36,6 +48,8 @@
                 console.log(response);
                 response.json().then(
                     data => {
+                        if(isowner)
+                        {
                         var temp = "";
                         for(var row of data)
                         {
@@ -46,11 +60,29 @@
                             temp += "<td>" +  '<button onclick="javascript:removeFromTraining(' + row_id + ')">Remove</button>' + "</td></tr>";
                         }
                         document.getElementById('added_exercises').innerHTML = temp;
+                        }
+                        else{
+                          var temp = "";
+                        for(var row of data)
+                        {
+                            const row_id = row['ID(e)'];
+                            temp += "<tr>";
+                            temp += "<td><a href='/exercise/" + row_id + "'>"  + row['e.exercisename'] + "</a></td>";
+                        
+                            temp += "</tr>";
+                        }
+                        document.getElementById('added_exercises').innerHTML = temp;
+                        }
                     }
                 )
             })
+          })
     }
       function getUnaddedExercises(){
+        if(!isowner)
+        {
+          return false;
+        }
         fetch("{{ url_for('training_unadded_get_protected', id=training_id) }}", {
                   method: 'get',
                   headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")}
@@ -74,6 +106,10 @@
     }
 
     function addSelectedExercises(){
+      if(!isowner)
+      {
+        return false;
+      }
       var checkedBoxes = document.querySelectorAll('input[name=check]:checked');
       for(var checkedBox of checkedBoxes)
       {
@@ -95,13 +131,16 @@
     }
 
     function removeFromTraining(id){
-      fetch("{{ url_for('training_exercise_put') }}", {
-                method: 'put',
-                headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
-                body: JSON.stringify({ 'training_id' :  "{{training_id}}", 'exercise_id': id})
-            }).then(response => {
-                getExercisesInTraining();
-            });
+      if(isowner)
+      {
+        fetch("{{ url_for('training_exercise_put') }}", {
+                  method: 'put',
+                  headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem("access_token")},
+                  body: JSON.stringify({ 'training_id' :  "{{training_id}}", 'exercise_id': id})
+              }).then(response => {
+                  getExercisesInTraining();
+              });
+      }
     }
 </script>
 {% endblock %}
