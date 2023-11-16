@@ -269,11 +269,11 @@ def exercise_post():
 @app.route("/exercise/<int:id>/history", methods=["GET"])
 @jwt_required()
 def exercise_history_get(id):
-    #try:
+    try:
         db = connect()
         username = get_jwt_identity()
         history, status = db.getExerciseHistory(id, username)
         print(history)
         return Response(status=status, mimetype='application/json', response=json.dumps(history))
-    #except:
+    except:
         return Response(status=400)
